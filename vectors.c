@@ -7,9 +7,6 @@
 #include <math.h>
 #include <stdio.h>
 
-// No inlining for the moment because sepples
-#define inline /**/
-
 // Generate vectors
 inline vec2 makeVec2(scalar x, scalar y) {
 	vec2 v;

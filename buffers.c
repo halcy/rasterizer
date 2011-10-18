@@ -33,7 +33,7 @@ buffer partialBuffer(buffer b, int index, int parts) {
 	return p;
 }
 
-void setPixel(buffer b, int x, int y, colour c) {
+inline void setPixel(buffer b, int x, int y, colour c) {
 	b.data[x+b.width*y] = c;
 }
 

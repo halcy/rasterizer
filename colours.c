@@ -10,9 +10,6 @@
 #include <math.h>
 #include <stdio.h>
 
-// No inlining for the moment because sepples
-#define inline /**/
-
 inline colour makeColour(scalar r, scalar g, scalar b) {
 	colour c;
 	c.r = r;
