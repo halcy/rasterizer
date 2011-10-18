@@ -1,0 +1,14 @@
+A very very simple software rasterizer.
+
+It's missing some things, such as clipping in view space - it's 
+fine as long as you don't have things really close or at infinity
+or behind the camera.
+
+To compile:
+
+make
+
+Needs OpenGL and GLUT and GLU, not for rasterizing, just for
+getting a window on screen to show the results in.
+
+
