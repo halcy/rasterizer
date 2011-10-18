@@ -1,5 +1,9 @@
 A very very simple software rasterizer.
 
+Parts of it (the model loader and the model, mostly) are from a
+computer graphics class I took at some point. I removed all of the
+C++yness, though, because eh.
+
 It's missing some things, such as clipping in view space - it's 
 fine as long as you don't have things really close or at infinity
 or behind the camera.
