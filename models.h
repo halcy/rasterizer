@@ -1,3 +1,9 @@
+/**
+ * Mesh/model managment functions. Include transforms and flat shading.
+ * Raw mesh loader taken from a computer graphics class.
+ * (c) L. Diener 2011
+ */
+
 #ifndef __MODELS_H__
 #define __MODELS_H__
 

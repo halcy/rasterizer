@@ -31,7 +31,8 @@ OBJECTS=\
 	buffers.o \
 	matrices.o \
 	models.o \
-	rasterizer.o
+	rasterizer.o \
+	main.o
 	
 all: $(OBJECTS)
 	gcc $(OBJECTS) -lm -lGL -lglut -lGLU -o raster

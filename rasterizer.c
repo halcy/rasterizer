@@ -1,29 +1,11 @@
 /**
- * A very simple soft rasterizer.
+ * A very simple software rasterizer.
  * (c) L. Diener 2011
  */
 
-#include <GL/gl.h>
-#include <GL/glut.h>
-
-#include <float.h>
-
-#include "buffers.h"
-
-#define WIDTH 320
-#define HEIGHT 240
-
-#define ROTATE 1
-
-#include "models.h"
+#include "rasterizer.h"
 
 model globalModel;
-buffer frameBuffer;
-
-int width;
-int height;
-
-int fullscreen = 0;
 
 #define SCREEN_X(p) (((p)+1)*((float)(width/2)))
 #define SCREEN_Y(p) (((p)+1)*((float)(height/2)))
@@ -41,7 +23,9 @@ typedef struct tri {
 } tri;
 
 void rasterize(model* m, buffer* pbuf, float* zbuf) {
-
+	int width = pbuf->width;
+	int height = pbuf->size;
+	
 	// Status variables.
 	tri t;
 	triangle* modelTri;
@@ -100,9 +84,9 @@ void rasterize(model* m, buffer* pbuf, float* zbuf) {
 
 		// Clip and possibly reject.
 		t.xmin = fmax(0, t.xmin);
-		t.xmax = fmin(WIDTH, t.xmax);
+		t.xmax = fmin(width, t.xmax);
 		t.ymin = fmax(0, t.ymin);
-		t.ymax = fmin(HEIGHT, t.ymax);
+		t.ymax = fmin(height, t.ymax);
 
 		if(t.ymin > t.ymax || t.xmin > t.xmax) {
 			continue;
@@ -151,119 +135,4 @@ void rasterize(model* m, buffer* pbuf, float* zbuf) {
 			}
 		}
 	}
-}
-
-void display() {
-	clear(frameBuffer);
-
-	// Initialize z buffer
-	float* zbuf = (float*)malloc( sizeof(float) * width * height );
-	for( int y = 0; y < height; y++ ) {
-		for( int x = 0; x < width; x++ ) {
-			zbuf[y*width+x] = FLT_MIN;
-		}
-	}
-
-	matrix transMatrix, rotMatrixA, mvMatrixO;
-	matrixTranslate(&transMatrix, 0, 0, 6);
-	matrixRotY(&rotMatrixA, 2.0);
-	matrixMult(&mvMatrixO, transMatrix, rotMatrixA);
-
-	matrix pMatrixO;
-	matrixPerspective(&pMatrixO, 45, 4.0/3.0, 1.0, 32.0 );
-		
-	applyTransforms(&globalModel, mvMatrixO, pMatrixO);
-	shade(&globalModel, 5, 5, 5);
-
-	rasterize(&globalModel, &frameBuffer, zbuf);
-
-	// Copy img's buffer to the screen
-	glDrawPixels(width, height, GL_RGBA, GL_FLOAT, frameBuffer.data);
-
-	// Leaking memory is rude.
-	free( zbuf );
-
-	glutSwapBuffers();
-}
-
-void reshape(int w, int h) {
-	glViewport(0, 0, w, h);
-}
-
-void keyboard(unsigned char key, int x, int y)
-{
-  switch(key)
-    {
-    case 27:
-      exit(0);
-      break;
-    case 'f':
-      if (fullscreen)
-	glutReshapeWindow(WIDTH, HEIGHT);
-      else
-	glutFullScreen();
-      fullscreen = !fullscreen;
-      break;
-    case 's':
-	writeToImage(frameBuffer, "out.bmp");
-      break;
-    default:
-      break;
-    }
-}
-
-void arrow_keys(int a_keys, int x, int y)
-{
-  switch(a_keys)
-    {
-    case GLUT_KEY_UP:
-      if (!ROTATE)
-	display();
-      break;
-    case GLUT_KEY_DOWN:
-      if (!ROTATE)
-	display();
-      break;
-    case GLUT_KEY_LEFT:
-      if (!ROTATE)
-	{
-	  display();
-	}
-      break;
-    case GLUT_KEY_RIGHT:
-      if (!ROTATE)
-	{
-	  display();
-	}
-      break;
-    default:
-      break;
-    }
-}
-
-int main(int argc, char **argv) {
-
-	globalModel = makeModelFromMeshFile("suzanne.raw");
-	
-	frameBuffer = makeBuffer(320,240);
-
-	width = WIDTH;
-	height = HEIGHT;
-
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(WIDTH, HEIGHT);
-	glutCreateWindow("Rasterizer");
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(keyboard);
-	glutSpecialFunc(arrow_keys);
-
-	if (ROTATE) {
-		glutIdleFunc(display);
-	}
-
-	glutMainLoop();
-
-  return 0;
 }
