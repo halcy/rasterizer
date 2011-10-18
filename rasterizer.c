@@ -15,11 +15,9 @@
 
 #define ROTATE 1
 
-#include "trianglefactory.h"
-TriangleFactory *factory;
+#include "models.h"
 
-Triangle *triangle;
-
+model globalModel;
 buffer frameBuffer;
 
 int width;
@@ -42,10 +40,11 @@ typedef struct tri {
 	int ymax;
 } tri;
 
-void rasterize(TriangleFactory* model, buffer* pbuf, float* zbuf) {
+void rasterize(model* m, buffer* pbuf, float* zbuf) {
 
 	// Status variables.
 	tri t;
+	triangle* modelTri;
 	float d1;
 	float d2;
 	float d3;
@@ -57,21 +56,17 @@ void rasterize(TriangleFactory* model, buffer* pbuf, float* zbuf) {
 	float z;
 	int i;
 	float l;
-	float ax;
-	float ay;
-	float bx;
-	float by;
 
 	// The actual rasterizer.
-	while(not model->empty()) {
-		triangle = model->fetch();
-
+	while(modelTrianglesLeft(m)) {
+		modelTri = modelNextTriangle(m);
+		
 		// Backface cull
 		if(
-			(triangle->vertices[1][0] - triangle->vertices[0][0]) *
-			(triangle->vertices[2][1] - triangle->vertices[0][1]) -
-			(triangle->vertices[2][0] - triangle->vertices[0][0]) *
-			(triangle->vertices[1][1] - triangle->vertices[0][1])
+			(modelTri->vertices[1][0] - modelTri->vertices[0][0]) *
+			(modelTri->vertices[2][1] - modelTri->vertices[0][1]) -
+			(modelTri->vertices[2][0] - modelTri->vertices[0][0]) *
+			(modelTri->vertices[1][1] - modelTri->vertices[0][1])
 			< 0
 		) {
 			continue;
@@ -79,8 +74,8 @@ void rasterize(TriangleFactory* model, buffer* pbuf, float* zbuf) {
 
 		// Lines of the form: d = nx * ( x - sx ) + ny * ( y - sy )
 		for( i = 0; i < 3; i++ ) {
-			t.sx[i] = SCREEN_X( triangle->vertices[i][0] );
-			t.sy[i] = SCREEN_Y( triangle->vertices[i][1] );
+			t.sx[i] = SCREEN_X( modelTri->vertices[i][0] );
+			t.sy[i] = SCREEN_Y( modelTri->vertices[i][1] );
 		}
 
 		// Normals
@@ -127,25 +122,25 @@ void rasterize(TriangleFactory* model, buffer* pbuf, float* zbuf) {
 
 							// Z test
 							z =
-								1.0f / triangle->vertices[0][2] * d2 +
-								1.0f / triangle->vertices[1][2] * d3 +
-								1.0f / triangle->vertices[2][2] * d1;
+								1.0f / modelTri->vertices[0][2] * d2 +
+								1.0f / modelTri->vertices[1][2] * d3 +
+								1.0f / modelTri->vertices[2][2] * d1;
 
 							if( z > zbuf[y*width+x] ) {
 								zbuf[y*width+x] = z;
 
 								r =
-									triangle->colors[0][0] * d2 +
-									triangle->colors[1][0] * d3 +
-									triangle->colors[2][0] * d1;
+									modelTri->colors[0][0] * d2 +
+									modelTri->colors[1][0] * d3 +
+									modelTri->colors[2][0] * d1;
 								g =
-									triangle->colors[0][1] * d2  +
-									triangle->colors[1][1] * d3  +
-									triangle->colors[2][1] * d1;
+									modelTri->colors[0][1] * d2  +
+									modelTri->colors[1][1] * d3  +
+									modelTri->colors[2][1] * d1;
 								b =
-									triangle->colors[0][2] * d2 +
-									triangle->colors[1][2] * d3 +
-									triangle->colors[2][2] * d1;
+									modelTri->colors[0][2] * d2 +
+									modelTri->colors[1][2] * d3 +
+									modelTri->colors[2][2] * d1;
 
 								
 								setPixel(*pbuf, x, y, makeColour(r,g,b));
@@ -169,17 +164,21 @@ void display() {
 		}
 	}
 
-	factory->transform();
-	factory->shade(5, 5, 5);
+	matrix transMatrix, rotMatrixA, mvMatrixO;
+	matrixTranslate(&transMatrix, 0, 0, 6);
+	matrixRotY(&rotMatrixA, 2.0);
+	matrixMult(&mvMatrixO, transMatrix, rotMatrixA);
 
-	rasterize( factory, &frameBuffer, zbuf );
+	matrix pMatrixO;
+	matrixPerspective(&pMatrixO, 45, 4.0/3.0, 1.0, 32.0 );
+		
+	applyTransforms(&globalModel, mvMatrixO, pMatrixO);
+	shade(&globalModel, 5, 5, 5);
+
+	rasterize(&globalModel, &frameBuffer, zbuf);
 
 	// Copy img's buffer to the screen
 	glDrawPixels(width, height, GL_RGBA, GL_FLOAT, frameBuffer.data);
-
-	if (ROTATE) {
-		factory->rotate(0.01f);
-	}
 
 	// Leaking memory is rude.
 	free( zbuf );
@@ -203,7 +202,7 @@ void keyboard(unsigned char key, int x, int y)
 	glutReshapeWindow(WIDTH, HEIGHT);
       else
 	glutFullScreen();
-      fullscreen = not fullscreen;
+      fullscreen = !fullscreen;
       break;
     case 's':
 	writeToImage(frameBuffer, "out.bmp");
@@ -218,26 +217,22 @@ void arrow_keys(int a_keys, int x, int y)
   switch(a_keys)
     {
     case GLUT_KEY_UP:
-      factory->tilt(-1.0f);
-      if (not ROTATE)
+      if (!ROTATE)
 	display();
       break;
     case GLUT_KEY_DOWN:
-      factory->tilt(1.0f);
-      if (not ROTATE)
+      if (!ROTATE)
 	display();
       break;
     case GLUT_KEY_LEFT:
-      if (not ROTATE)
+      if (!ROTATE)
 	{
-	  factory->rotate(-1.0f);
 	  display();
 	}
       break;
     case GLUT_KEY_RIGHT:
-      if (not ROTATE)
+      if (!ROTATE)
 	{
-	  factory->rotate(1.0f);
 	  display();
 	}
       break;
@@ -246,11 +241,10 @@ void arrow_keys(int a_keys, int x, int y)
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
-	factory = new TriangleFactory("suzanne.raw");
-
+	globalModel = makeModelFromMeshFile("suzanne.raw");
+	
 	frameBuffer = makeBuffer(320,240);
 
 	width = WIDTH;

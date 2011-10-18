@@ -1,9 +1,9 @@
-CC = g++
 CFLAGS= \
 	-Wall \
 	-ffast-math \
 	-O5 \
-	-g
+	-g \
+	-std=c99
 # 	-mmmx -msse -msse2 -msse3 -msse4a -mssse3 -mfpmath=sse \
 # 	-falign-functions -falign-jumps -falign-labels -falign-loops \
 # 	-fbranch-probabilities -fbranch-target-load-optimize2 \
@@ -30,10 +30,11 @@ OBJECTS=\
 	colours.o \
 	buffers.o \
 	matrices.o \
+	models.o \
 	rasterizer.o
 	
 all: $(OBJECTS)
-	g++ $(OBJECTS) -lm -lGL -lglut -lGLU -o raster
+	gcc $(OBJECTS) -lm -lGL -lglut -lGLU -o raster
 	
 clean:
 	rm -r *.o

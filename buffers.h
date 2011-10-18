@@ -15,7 +15,7 @@ typedef struct buffer {
 	int width;
 	int firstLine;
 	int size;
-	int memid;
+	// int memid;
 	colour* data;
 } buffer;
 

@@ -253,6 +253,6 @@ void matrixPerspective(matrix* m, scalar degrees, scalar aspect, scalar near, sc
         scalar f = ((scalar)1) / scalarTan(degrees*scalarPI/((scalar)180)/((scalar)2));
 	m->v[0]  = f/aspect; m->v[1] = 0;  m->v[2]  = 0;                     m->v[3]  = 0;
 	m->v[4]  = 0;        m->v[5] = f;  m->v[6]  = 0;                     m->v[7]  = 0;
-	m->v[8]  = 0;        m->v[9] = 0;  m->v[10] = (far+near)/(near-far); m->v[11] = (scalar(2))*far*near/(near-far);
+	m->v[8]  = 0;        m->v[9] = 0;  m->v[10] = (far+near)/(near-far); m->v[11] = ((scalar)2)*far*near/(near-far);
 	m->v[12] = 0;        m->v[13] = 0; m->v[14] = ((scalar)-1);          m->v[15] = 0;
 }

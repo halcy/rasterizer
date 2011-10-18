@@ -20,8 +20,8 @@
 #define scalarSin(x) (sin((x)))
 #define scalarACos(x) (acos(x))
 #define scalarASin(x) (asin(x))
-#define scalarPI M_PI
-#define scalarE M_E
+#define scalarPI 3.14159265
+#define scalarE 2.71828183
 #define scalarInf INFINITY
 #define scalarAbs(x) (((x)<0)?(-x):(x))
 #define scalarLog(x) (log((x)))

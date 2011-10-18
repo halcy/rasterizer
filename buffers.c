@@ -9,8 +9,8 @@
 #include "bmp_handler.h"
 
 #include <stdlib.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
+/*#include <sys/ipc.h>
+#include <sys/shm.h>*/
 
 buffer makeBuffer(int width, int height) {
 	buffer b;
